@@ -1,0 +1,5 @@
+Order #1, <timestamp>, $1.80, Barista name, Cappuccino, Flavored syrup, Espresso shot, Whipped cream, Cinnamon
+Order #2, <timestamp>, $0.65, Barista name, Drip Coffee, Espresso shot, Whipped cream
+Order #3, <timestamp>, $2.00, Barista name, Latte
+Order #4, <timestamp>, $2.00, Barista name, Cappuccino, Espresso shot x3
+Order #5, <timestamp>, $0.95, Barista name, Iced Coffee, Flavored syrup x2, Espresso shot

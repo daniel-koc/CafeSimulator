@@ -1,0 +1,4 @@
+A. Cappuccino ($1.25)
+B. Latte ($2.00)
+C. Drip Coffee ($0.25)
+D. Iced Coffee ($0.50)

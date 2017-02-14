@@ -1,0 +1,4 @@
+1. Espresso shot($0.25)
+2. Flavored syrup ($0.10)
+3. Whipped cream ($0.15)
+4. Cinnamon ($0.05)
