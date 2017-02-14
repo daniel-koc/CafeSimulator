@@ -1,0 +1,2 @@
+# CafeSimulator
+Multi-threaded C++ program to simulate a cafe. The simulation is made up of an input file, an output file, the main-thread , and additional worker-threads each representing a barista. The amount of baristas (worker-threads) is configurable. The main-thread reads the input file to create orders. Each order is handled by an available barista to generate a receipt. Each receipt is serialized in the main-thread into the output file. Each barista must sleep for a random amount of seconds (3 to 6) between handling orders.
