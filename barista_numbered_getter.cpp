@@ -7,7 +7,6 @@ namespace cafe {
 const char* BARISTA_PSEUDO_NAME = "Barista#";
 
 BaristaNumberedGetter::~BaristaNumberedGetter() {
-  std::cout << "BaristaNumberedGetter destroyed." << std::endl;
 }
 
 int BaristaNumberedGetter::getBaristas(

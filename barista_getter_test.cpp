@@ -12,7 +12,9 @@ int main(int argc, char* argv[]) {
     try {
       baristas_count = std::stoi(argv[1]);
     } catch (std::invalid_argument e) {
-      std::cerr << "Exception: No conversion could be performed!" << std::endl;
+      std::cerr
+          << "Exception: No conversion to int could be performed for string '"
+          << argv[1] << "'!" << std::endl;
     } catch (std::out_of_range e) {
       std::cerr << "Exception: The string value '" << argv[1]
                 << "' is out of the range of representable values by an int!"

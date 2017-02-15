@@ -14,7 +14,6 @@ BaristaGenericGetter::BaristaGenericGetter()
 }
 
 BaristaGenericGetter::~BaristaGenericGetter() {
-  std::cout << "BaristaGenericGetter destroyed." << std::endl;
 }
 
 int BaristaGenericGetter::getBaristas(BaristaDescriptions& barista_descriptions,

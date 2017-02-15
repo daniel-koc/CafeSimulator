@@ -6,7 +6,6 @@
 namespace cafe {
 
 BaristaFileGetter::~BaristaFileGetter() {
-  std::cout << "BaristaFileGetter destroyed." << std::endl;
 }
 
 int BaristaFileGetter::getBaristas(BaristaDescriptions& barista_descriptions,
@@ -81,8 +80,10 @@ void BaristaFileGetter::parseBaristaDescriptionsFile() {
     int j = i + name_len + 1;
     while (data[i + name_len - 1] <= ' ')
       name_len--;
+
     barista_descriptions_.push_back(
         BaristaDescription(std::string(&data[i], name_len)));
+
     i = j;
   }
 }

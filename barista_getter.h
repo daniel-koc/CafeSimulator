@@ -7,9 +7,8 @@
 namespace cafe {
 
 struct BaristaDescription {
-  BaristaDescription() {}
-  BaristaDescription(const std::string& n) { name = n; }
-  BaristaDescription(const BaristaDescription& d) { name = d.name; }
+  BaristaDescription(const std::string& n) : name(n) {}
+  BaristaDescription(const BaristaDescription& d) : name(d.name) {}
 
   std::string name;
 };
