@@ -73,10 +73,10 @@ void BaristaFileGetter::parseBaristaDescriptionsFile() {
 
     // Calculating the size of a barista's name:
     int name_len = 1;
-    while ((i + name_len) < data_size && data[i + name_len] != 10)
-      name_len++;
     if ((i + name_len) >= data_size)
       break;
+    while ((i + name_len) < data_size && data[i + name_len] != 10)
+      name_len++;
     int j = i + name_len + 1;
     while (data[i + name_len - 1] <= ' ')
       name_len--;
