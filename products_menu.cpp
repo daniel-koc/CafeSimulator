@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>  // std::invalid_argument std::out_of_range
+#include <vector>
 
 namespace cafe {
 
@@ -10,12 +11,21 @@ ProductsMenu::~ProductsMenu() {
   std::cout << "ProductsMenu for " << getName() << " destruction." << std::endl;
 }
 
+const ProductDescription& ProductsMenu::at(int index) const {
+  auto it = product_descriptions_.begin();
+  for (int i = 0; i < index; i++)
+    it++;
+  return it->second;
+}
+
 bool ProductsMenu::getAt(char marker, ProductDescription& product) const {
-  for (auto p : product_descriptions_)
-    if (p.marker == marker) {
-      product = p;
-      return true;
-    }
+  const auto it = product_descriptions_.find(marker);
+  if (it != product_descriptions_.cend()) {
+    product = it->second;
+    return true;
+  }
+  /*
+  */
   return false;
 }
 
@@ -64,10 +74,10 @@ bool ProductsMenu::parseFile(const std::string file_name) {
 
     // Calculating the length of a product description:
     int description_len = 1;
-    while ((i + description_len) < data_size && data[i + description_len] != 10)
-      description_len++;
     if ((i + description_len) >= data_size)
       break;
+    while ((i + description_len) < data_size && data[i + description_len] != 10)
+      description_len++;
     int j = i + description_len + 1;
     while (data[i + description_len - 1] <= ' ')
       description_len--;
@@ -119,9 +129,12 @@ bool ProductsMenu::parseFile(const std::string file_name) {
                 // Converting the price:
                 double price = std::stod(std::string(&data[k], price_len));
 
-                product_descriptions_.push_back(ProductDescription(
-                    product_marker, std::string(&data[i], name_len), price));
-                parsed_products_count++;
+                if (product_descriptions_.find(product_marker) ==
+                    product_descriptions_.cend()) {
+                  product_descriptions_[product_marker] = ProductDescription(
+                      product_marker, std::string(&data[i], name_len), price);
+                  parsed_products_count++;
+                }
               } catch (std::invalid_argument e) {
                 std::cerr << "Exception: No conversion to double could be "
                              "performed for string '"

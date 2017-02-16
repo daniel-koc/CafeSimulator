@@ -2,11 +2,12 @@
 #define CAFE_PRODUCTS_MENU_H_
 
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 namespace cafe {
 
 struct ProductDescription {
+  ProductDescription() {}
   ProductDescription(char m, const std::string& n, double p)
       : marker(m), name(n), price(p) {}
   ProductDescription(const ProductDescription& d)
@@ -17,7 +18,7 @@ struct ProductDescription {
   double price;
 };
 
-typedef std::vector<ProductDescription> ProductDescriptions;
+typedef std::unordered_map<char, ProductDescription> ProductDescriptions;
 
 class ProductsMenuFactory;
 
@@ -47,9 +48,7 @@ class ProductsMenu {
 
   int count() const { static_cast<int>(product_descriptions_.size()); }
 
-  const ProductDescription& at(int index) {
-    return product_descriptions_[index];
-  }
+  const ProductDescription& at(int index) const;
 
   /**
     * Gets the product description for the given marker.
