@@ -25,18 +25,31 @@ static inline std::string& rtrim(std::string& s) {
 
 }  // namespace
 
+bool OrdersManager::isLoadingOrders() {
+  std::lock_guard<std::mutex> lockGuard(loaded_orders_mutex_);
+  return !orders_loaded_;
+}
+
+bool OrdersManager::isNextOrder() {
+  std::lock_guard<std::mutex> lockGuard(order_mutex_);
+  return !orders_.empty();
+}
+
+void OrdersManager::addNextOrder(OrderDescription order) {
+  std::lock_guard<std::mutex> lockGuard(order_mutex_);
+  orders_.push_back(order);
+}
+
 OrderDescription OrdersManager::getNextOrder() {
-  order_mutex_.lock();
+  std::lock_guard<std::mutex> lockGuard(order_mutex_);
   OrderDescription order = orders_.front();
   orders_.pop_front();
-  order_mutex_.unlock();
   return order;
 }
 
 void OrdersManager::addReceipt(ReceiptDescription receipt) {
-  receipt_mutex_.lock();
+  std::lock_guard<std::mutex> lockGuard(receipt_mutex_);
   receipts_.push_back(receipt);
-  receipt_mutex_.unlock();
 }
 
 void OrdersManager::manageAllOrders(int baristas_count) {
@@ -50,34 +63,38 @@ void OrdersManager::manageAllOrders(int baristas_count) {
                 });
   std::cout << std::endl;
 
+  std::vector<std::unique_ptr<BaristaWorker>> barista_workers;
+  std::vector<std::thread> worker_threads;
+  for (int i = 0; i < baristas_count; i++) {
+    BaristaWorker* worker = new BaristaWorker(
+        barista_descriptions[i].name, drinks_menu_, add_ons_menu_, this);
+    barista_workers.push_back(std::unique_ptr<BaristaWorker>(worker));
+    worker_threads.push_back(std::thread(BaristaWorker::doWork, worker));
+  }
+
   if (!parseOrdersFile()) {
     std::cout << "There is no orders!" << std::endl;
     return;
   }
 
-  std::vector<std::unique_ptr<BaristaWorker>> barista_workers;
-  std::vector<std::thread> worker_threads;
-  for (int i = 0; i < baristas_count; i++) {
-    BaristaWorker* worker = new BaristaWorker(
-        barista_descriptions[0].name, drinks_menu_, add_ons_menu_, this);
-    barista_workers.push_back(std::unique_ptr<BaristaWorker>(worker));
-    worker_threads.push_back(std::thread(BaristaWorker::doWork, worker));
-  }
+  loaded_orders_mutex_.lock();
+  orders_loaded_ = true;
+  loaded_orders_mutex_.unlock();
 
   std::for_each(worker_threads.begin(), worker_threads.end(),
                 std::mem_fn(&std::thread::join));
 
-  /*
-  std::cout << "Orders:" << std::endl;
-  while (!isNextOrder()) {
-    cafe::OrderDescription order = getNextOrder();
-    std::cout << "Ordering: " << order.number << ". " << order.drink_marker
-              << ", ";
-    for (auto add_ons_marker : order.add_ons_markers)
-      std::cout << add_ons_marker << ", ";
-    std::cout << std::endl;
+  if (isNextOrder()) {
+    std::cout << "Orders not processed:" << std::endl;
+    while (isNextOrder()) {
+      cafe::OrderDescription order = getNextOrder();
+      std::cout << "Ordering: " << order.number << ". " << order.drink_marker
+                << ", ";
+      for (auto add_ons_marker : order.add_ons_markers)
+        std::cout << add_ons_marker << ", ";
+      std::cout << std::endl;
+    }
   }
-  */
 
   while (!receipts_.empty()) {
     ReceiptDescription receipt = receipts_.front();
@@ -155,7 +172,7 @@ bool OrdersManager::parseOrdersFile() {
         i++;
       }
 
-      orders_.push_back(order);
+      addNextOrder(order);
       next_order_number++;
     }
 

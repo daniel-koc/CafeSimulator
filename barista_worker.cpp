@@ -52,10 +52,12 @@ void BaristaWorker::doWork() {
   std::cout << "Worker Thread " << std::this_thread::get_id() << " is Executing"
             << std::endl;
 
-  while (!orders_manager_->isNextOrder()) {
-    OrderDescription order = orders_manager_->getNextOrder();
-    ReceiptDescription receipt = makeReceipt(order);
-    orders_manager_->addReceipt(receipt);
+  while (orders_manager_->isLoadingOrders() || orders_manager_->isNextOrder()) {
+    if (orders_manager_->isNextOrder()) {
+      OrderDescription order = orders_manager_->getNextOrder();
+      ReceiptDescription receipt = makeReceipt(order);
+      orders_manager_->addReceipt(receipt);
+    }
 
     /*
         // Seed with a real random value, if available

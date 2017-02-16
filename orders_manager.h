@@ -21,11 +21,15 @@ class OrdersManager {
       : drinks_menu_(drinks_menu),
         add_ons_menu_(add_ons_menu),
         orders_file_name_(orders_file_name),
-        receipt_file_name_(receipt_file_name) {}
+        receipt_file_name_(receipt_file_name),
+        orders_loaded_(false) {}
 
-  bool isNextOrder() const { orders_.empty(); }
+  bool isLoadingOrders();
 
+  bool isNextOrder();
+  void addNextOrder(OrderDescription order);
   OrderDescription getNextOrder();
+
   void addReceipt(ReceiptDescription receipt);
 
   void manageAllOrders(int baristas_count);
@@ -52,6 +56,8 @@ class OrdersManager {
 
   std::mutex order_mutex_;
   std::mutex receipt_mutex_;
+  std::mutex loaded_orders_mutex_;
+  bool orders_loaded_;
 };
 
 }  // namespace cafe
