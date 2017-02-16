@@ -8,20 +8,20 @@
 namespace cafe {
 
 class ProductsMenuFactory {
-protected:
-ProductsMenuFactory();
+ protected:
+  ProductsMenuFactory();
 
-public:
-~ProductsMenuFactory();
+ public:
+  ~ProductsMenuFactory();
 
-static std::unique_ptr<ProductsMenuFactory> getInstance();
+  static std::unique_ptr<ProductsMenuFactory> getInstance();
 
-std::shared_ptr<ProductsMenu> getDrinksMenu() const { return drinks_menu_; }
-std::shared_ptr<ProductsMenu> getAdOnsMenu() const { return add_ons_menu_; }
+  std::shared_ptr<ProductsMenu> getDrinksMenu() const { return drinks_menu_; }
+  std::shared_ptr<ProductsMenu> getAdOnsMenu() const { return add_ons_menu_; }
 
-private:
-std::shared_ptr<ProductsMenu> drinks_menu_;
-std::shared_ptr<ProductsMenu> add_ons_menu_;
+ private:
+  std::shared_ptr<ProductsMenu> drinks_menu_;
+  std::shared_ptr<ProductsMenu> add_ons_menu_;
 };
 
 }  // namespace cafe
