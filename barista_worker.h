@@ -7,16 +7,21 @@
 
 namespace cafe {
 
+class OrdersManager;
 class ProductsMenu;
 
 class BaristaWorker {
  public:
   BaristaWorker(const std::string name,
                 ProductsMenu* drinks_menu,
-                ProductsMenu* add_ons_menu)
+                ProductsMenu* add_ons_menu,
+                OrdersManager* orders_manager)
       : barista_name_(name),
         drinks_menu_(drinks_menu),
-        add_ons_menu_(add_ons_menu) {}
+        add_ons_menu_(add_ons_menu),
+        orders_manager_(orders_manager) {}
+
+  void doWork();
 
   ReceiptDescription makeReceipt(const OrderDescription& order);
 
@@ -25,6 +30,7 @@ class BaristaWorker {
 
   ProductsMenu* drinks_menu_;
   ProductsMenu* add_ons_menu_;
+  OrdersManager* orders_manager_;
 };
 
 }  // namespace cafe

@@ -3,6 +3,7 @@
 
 #include <list>
 #include <memory>
+#include <mutex>
 
 #include "order_description.h"
 #include "receipt_description.h"
@@ -24,11 +25,8 @@ class OrdersManager {
 
   bool isNextOrder() const { orders_.empty(); }
 
-  OrderDescription getNextOrder() {
-    OrderDescription order = orders_.front();
-    orders_.pop_front();
-    return order;
-  }
+  OrderDescription getNextOrder();
+  void addReceipt(ReceiptDescription receipt);
 
   void manageAllOrders(int baristas_count);
 
@@ -51,6 +49,9 @@ class OrdersManager {
 
   std::list<OrderDescription> orders_;
   std::list<ReceiptDescription> receipts_;
+
+  std::mutex order_mutex_;
+  std::mutex receipt_mutex_;
 };
 
 }  // namespace cafe

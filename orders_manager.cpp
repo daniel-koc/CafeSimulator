@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>  // std::stringstream
+#include <thread>
 #include <time.h>
 
 #include "barista_generic_getter.h"
@@ -24,6 +25,20 @@ static inline std::string& rtrim(std::string& s) {
 
 }  // namespace
 
+OrderDescription OrdersManager::getNextOrder() {
+  order_mutex_.lock();
+  OrderDescription order = orders_.front();
+  orders_.pop_front();
+  order_mutex_.unlock();
+  return order;
+}
+
+void OrdersManager::addReceipt(ReceiptDescription receipt) {
+  receipt_mutex_.lock();
+  receipts_.push_back(receipt);
+  receipt_mutex_.unlock();
+}
+
 void OrdersManager::manageAllOrders(int baristas_count) {
   cafe::BaristaDescriptions barista_descriptions;
   std::unique_ptr<cafe::BaristaGenericGetter> barista_getter(
@@ -40,9 +55,19 @@ void OrdersManager::manageAllOrders(int baristas_count) {
     return;
   }
 
-  std::unique_ptr<BaristaWorker> barista(new BaristaWorker(
-      barista_descriptions[0].name, drinks_menu_, add_ons_menu_));
+  std::vector<std::unique_ptr<BaristaWorker>> barista_workers;
+  std::vector<std::thread> worker_threads;
+  for (int i = 0; i < baristas_count; i++) {
+    BaristaWorker* worker = new BaristaWorker(
+        barista_descriptions[0].name, drinks_menu_, add_ons_menu_, this);
+    barista_workers.push_back(std::unique_ptr<BaristaWorker>(worker));
+    worker_threads.push_back(std::thread(BaristaWorker::doWork, worker));
+  }
 
+  std::for_each(worker_threads.begin(), worker_threads.end(),
+                std::mem_fn(&std::thread::join));
+
+  /*
   std::cout << "Orders:" << std::endl;
   while (!isNextOrder()) {
     cafe::OrderDescription order = getNextOrder();
@@ -51,11 +76,14 @@ void OrdersManager::manageAllOrders(int baristas_count) {
     for (auto add_ons_marker : order.add_ons_markers)
       std::cout << add_ons_marker << ", ";
     std::cout << std::endl;
+  }
+  */
 
-    ReceiptDescription receipt = barista->makeReceipt(order);
+  while (!receipts_.empty()) {
+    ReceiptDescription receipt = receipts_.front();
+    receipts_.pop_front();
     serializeReceipt(receipt);
   }
-  std::cout << std::endl;
 }
 
 bool OrdersManager::parseOrdersFile() {
