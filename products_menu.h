@@ -46,6 +46,8 @@ class ProductsMenu {
 
   std::string getName() const { return menu_name_; }
 
+bool isCorrectProductMarker(char marker) const { is_correct_product_marker_(marker); }
+
   int count() const { static_cast<int>(product_descriptions_.size()); }
 
   const ProductDescription& at(int index) const;
