@@ -1,9 +1,9 @@
 #ifndef CAFE_RECEIPT_DESCRIPTION_H_
 #define CAFE_RECEIPT_DESCRIPTION_H_
 
-#include "order_description.h"
-
 #include <time.h>
+
+#include "order_description.h"
 
 namespace cafe {
 

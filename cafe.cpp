@@ -53,9 +53,8 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
   }
 
-  std::unique_ptr<cafe::OrdersManager> orders_manager(
-      new cafe::OrdersManager(drinks_menu.get(), add_ons_menu.get(),
-                              cafe::ORDERS_PATH, cafe::RECEIPTS_PATH));
+  std::unique_ptr<cafe::OrdersManager> orders_manager(new cafe::OrdersManager(
+      drinks_menu, add_ons_menu, cafe::ORDERS_PATH, cafe::RECEIPTS_PATH));
   orders_manager->manageAllOrders(baristas_count);
 
   return 0;

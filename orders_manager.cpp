@@ -1,6 +1,7 @@
 #include "orders_manager.h"
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -25,9 +26,8 @@ static inline std::string& rtrim(std::string& s) {
 
 }  // namespace
 
-bool OrdersManager::isLoadingOrders() {
-  std::lock_guard<std::mutex> lockGuard(loaded_orders_mutex_);
-  return !orders_loaded_;
+bool OrdersManager::isNextOrderOrStillLoading() {
+  return (!orders_.empty() || !all_orders_loaded_);
 }
 
 bool OrdersManager::isNextOrder() {
@@ -35,9 +35,33 @@ bool OrdersManager::isNextOrder() {
   return !orders_.empty();
 }
 
+bool OrdersManager::canBeNextOrderToProcess() {
+  std::lock_guard<std::mutex> lockGuard(order_mutex_);
+  return isNextOrderOrStillLoading();
+}
+
 void OrdersManager::addNextOrder(OrderDescription order) {
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  std::cout << "Ordering: " << order.number << ". " << order.drink_marker
+            << ", ";
+  for (auto add_ons_marker : order.add_ons_markers)
+    std::cout << add_ons_marker << ", ";
+  std::cout << std::endl;
+
   std::lock_guard<std::mutex> lockGuard(order_mutex_);
   orders_.push_back(order);
+  orders_cond_var_.notify_one();
+}
+
+void OrdersManager::waitUntilNextOrder() {
+  std::unique_lock<std::mutex> mlock(orders_mutex_);
+  // Start waiting for the Condition Variable to get signaled
+  // Wait() will internally release the lock and make the thread to block
+  // As soon as condition variable get signaled, resume the thread and
+  // again acquire the lock. Then check if condition is met or not
+  // If condition is met then continue else again go in wait.
+  orders_cond_var_.wait(
+      mlock, std::bind(&OrdersManager::isNextOrderOrStillLoading, this));
 }
 
 OrderDescription OrdersManager::getNextOrder() {
@@ -50,6 +74,8 @@ OrderDescription OrdersManager::getNextOrder() {
 void OrdersManager::addReceipt(ReceiptDescription receipt) {
   std::lock_guard<std::mutex> lockGuard(receipt_mutex_);
   receipts_.push_back(receipt);
+  std::cout << "generated order " << receipt.order.number << " by "
+            << receipt.barista_name << std::endl;
 }
 
 void OrdersManager::manageAllOrders(int baristas_count) {
@@ -77,25 +103,16 @@ void OrdersManager::manageAllOrders(int baristas_count) {
     return;
   }
 
-  loaded_orders_mutex_.lock();
-  orders_loaded_ = true;
-  loaded_orders_mutex_.unlock();
+  {
+    std::lock_guard<std::mutex> lock(orders_mutex_);
+    all_orders_loaded_ = true;
+    orders_cond_var_.notify_all();
+  }
 
   std::for_each(worker_threads.begin(), worker_threads.end(),
                 std::mem_fn(&std::thread::join));
 
-  if (isNextOrder()) {
-    std::cout << "Orders not processed:" << std::endl;
-    while (isNextOrder()) {
-      cafe::OrderDescription order = getNextOrder();
-      std::cout << "Ordering: " << order.number << ". " << order.drink_marker
-                << ", ";
-      for (auto add_ons_marker : order.add_ons_markers)
-        std::cout << add_ons_marker << ", ";
-      std::cout << std::endl;
-    }
-  }
-
+  std::cout << "Saving all generated receipts..." << std::endl;
   while (!receipts_.empty()) {
     ReceiptDescription receipt = receipts_.front();
     receipts_.pop_front();
@@ -156,17 +173,14 @@ bool OrdersManager::parseOrdersFile() {
       order_len++;
     int j = i + order_len;
 
-    if ((data[i] >= 'a' && data[i] <= 'z') ||
-        (data[i] >= 'A' && data[i] <= 'Z')) {
+    if (drinks_menu_->isCorrectProductMarker(data[i])) {
       OrderDescription order(next_order_number, data[i]);
       i++;
 
       while (i < j) {
         while (i < j && (data[i] == ',' || data[i] <= ' '))
           i++;
-        if (i >= j)
-          break;
-        if (!(data[i] >= '0' && data[i] <= '9'))
+        if (i >= j || !add_ons_menu_->isCorrectProductMarker(data[i]))
           break;
         order.add_ons_markers.push_back(data[i]);
         i++;

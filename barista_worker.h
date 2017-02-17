@@ -1,6 +1,7 @@
 #ifndef CAFE_BARISTA_WORKER_H_
 #define CAFE_BARISTA_WORKER_H_
 
+#include <memory>
 #include <string>
 
 #include "receipt_description.h"
@@ -13,8 +14,8 @@ class ProductsMenu;
 class BaristaWorker {
  public:
   BaristaWorker(const std::string name,
-                ProductsMenu* drinks_menu,
-                ProductsMenu* add_ons_menu,
+                std::shared_ptr<ProductsMenu> drinks_menu,
+                std::shared_ptr<ProductsMenu> add_ons_menu,
                 OrdersManager* orders_manager)
       : barista_name_(name),
         drinks_menu_(drinks_menu),
@@ -28,8 +29,8 @@ class BaristaWorker {
  private:
   std::string barista_name_;
 
-  ProductsMenu* drinks_menu_;
-  ProductsMenu* add_ons_menu_;
+  std::shared_ptr<ProductsMenu> drinks_menu_;
+  std::shared_ptr<ProductsMenu> add_ons_menu_;
   OrdersManager* orders_manager_;
 };
 

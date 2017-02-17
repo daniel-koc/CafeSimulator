@@ -1,6 +1,7 @@
 #ifndef CAFE_ORDERS_MANAGER_H_
 #define CAFE_ORDERS_MANAGER_H_
 
+#include <condition_variable>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -14,20 +15,21 @@ class ProductsMenu;
 
 class OrdersManager {
  public:
-  OrdersManager(ProductsMenu* drinks_menu,
-                ProductsMenu* add_ons_menu,
+  OrdersManager(std::shared_ptr<ProductsMenu> drinks_menu,
+                std::shared_ptr<ProductsMenu> add_ons_menu,
                 const std::string orders_file_name,
                 const std::string receipt_file_name)
       : drinks_menu_(drinks_menu),
         add_ons_menu_(add_ons_menu),
         orders_file_name_(orders_file_name),
         receipt_file_name_(receipt_file_name),
-        orders_loaded_(false) {}
+        all_orders_loaded_(false) {}
 
-  bool isLoadingOrders();
-
+  bool isNextOrderOrStillLoading();
   bool isNextOrder();
+  bool canBeNextOrderToProcess();
   void addNextOrder(OrderDescription order);
+  void waitUntilNextOrder();
   OrderDescription getNextOrder();
 
   void addReceipt(ReceiptDescription receipt);
@@ -45,8 +47,8 @@ class OrdersManager {
 
   void serializeReceipt(const ReceiptDescription& receipt);
 
-  ProductsMenu* drinks_menu_;
-  ProductsMenu* add_ons_menu_;
+  std::shared_ptr<ProductsMenu> drinks_menu_;
+  std::shared_ptr<ProductsMenu> add_ons_menu_;
 
   std::string orders_file_name_;
   std::string receipt_file_name_;
@@ -56,8 +58,9 @@ class OrdersManager {
 
   std::mutex order_mutex_;
   std::mutex receipt_mutex_;
-  std::mutex loaded_orders_mutex_;
-  bool orders_loaded_;
+  std::mutex orders_mutex_;
+  std::condition_variable orders_cond_var_;
+  bool all_orders_loaded_;
 };
 
 }  // namespace cafe
