@@ -62,3 +62,4 @@ There are also algorithms which allow for setting a "real" random value - based 
 So it is possible to solve this issue on different ways.
 
 We would also improove the implementation of BaristaWorker::doWork method. We could use condition variables to wait until OrderManager notify that a order is available in the queue.
+(!it's already done!)
